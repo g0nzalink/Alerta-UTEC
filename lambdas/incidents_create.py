@@ -41,7 +41,7 @@ def decode_jwt(token, secret):
 def notify_clients(message):
     """Notifica a todos los clientes suscritos (simplificado)"""
     try:
-        connections_table = dynamodb.Table("WebSocketConnections")
+        connections_table = dynamodb.Table("WebSocketConnectionsV2")
         response_scan = connections_table.scan()
         for item in response_scan.get("Items", []):
             conn_id = item["connectionId"]

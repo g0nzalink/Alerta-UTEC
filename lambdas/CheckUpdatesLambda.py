@@ -5,7 +5,7 @@ from datetime import datetime
 
 dynamodb = boto3.resource("dynamodb")
 incidents_table = dynamodb.Table(os.environ.get("INCIDENTS_TABLE", "Incidents"))
-connections_table = dynamodb.Table("WebSocketConnections")
+connections_table = dynamodb.Table("WebSocketConnectionsV2")
 
 def lambda_handler(event, context):
     """
