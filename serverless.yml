@@ -183,3 +183,73 @@ functions:
     handler: lambdas/CheckUpdatesLambda.lambda_handler
     events:
       - schedule: rate(1 minute)
+
+resources:
+  Resources:
+    IncidentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Incidents
+        AttributeDefinitions:
+          - AttributeName: incidentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: incidentId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    CommentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Comments
+        AttributeDefinitions:
+          - AttributeName: incidentId
+            AttributeType: S
+          - AttributeName: commentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: incidentId
+            KeyType: HASH
+          - AttributeName: commentId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+
+    NotificationsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Notifications
+        AttributeDefinitions:
+          - AttributeName: notificationId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: notificationId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    WebSocketConnectionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: WebSocketConnections
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+
+    S3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: alerta-utec-2
+        VersioningConfiguration:
+          Status: Enabled
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
