@@ -13,6 +13,8 @@ provider:
     NOTIFICATIONS_TABLE: Notifications
     S3_BUCKET: alerta-utec
     JWT_SECRET: ""   # vacío, las lambdas usarán este valor por defecto
+    WS_ENDPOINT: { "Fn::Sub": "https://${WebsocketsApi}.execute-api.${AWS::Region}.amazonaws.com/${sls:stage}" }
+    SNS_TOPIC_ARN: { "Ref": "IncidentNotificationTopic" }
   role: arn:aws:iam::347937663085:role/LabRole
 
 functions:
@@ -243,15 +245,11 @@ resources:
       Properties:
         TableName: WebSocketConnections
         AttributeDefinitions:
-          - AttributeName: PK
-            AttributeType: S
-          - AttributeName: SK
+          - AttributeName: connectionId
             AttributeType: S
         KeySchema:
-          - AttributeName: PK
+          - AttributeName: connectionId
             KeyType: HASH
-          - AttributeName: SK
-            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
 
     S3Bucket:
@@ -265,3 +263,9 @@ resources:
           BlockPublicPolicy: true
           IgnorePublicAcls: true
           RestrictPublicBuckets: true
+
+    IncidentNotificationTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: AlertaUTEC-IncidentNotifications
+        DisplayName: Alerta UTEC - Notificaciones de Incidentes
