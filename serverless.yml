@@ -1,0 +1,185 @@
+service: alerta-utec-backend
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: python3.11
+  memorySize: 512
+  timeout: 30
+  environment:
+    INCIDENTS_TABLE: Incidents
+    COMMENTS_TABLE: Comments
+    NOTIFICATIONS_TABLE: Notifications
+    S3_BUCKET: alerta-utec
+    JWT_SECRET: ""   # vacío, las lambdas usarán este valor por defecto
+  role: arn:aws:iam::347937663085:role/LabRole
+
+functions:
+
+  # ---------- Autenticación ----------
+  auth_register:
+    handler: lambdas/auth_register.lambda_handler
+    events:
+      - http:
+          path: auth/register
+          method: post
+          cors: true
+
+  auth_login:
+    handler: lambdas/auth_login.lambda_handler
+    events:
+      - http:
+          path: auth/login
+          method: post
+          cors: true
+
+  # ---------- Incidentes ----------
+  incidents_create:
+    handler: lambdas/incidents_create.lambda_handler
+    events:
+      - http:
+          path: incidents
+          method: post
+          cors: true
+
+  incidents_list:
+    handler: lambdas/incidents_list.lambda_handler
+    events:
+      - http:
+          path: incidents
+          method: get
+          cors: true
+
+  incidents_get:
+    handler: lambdas/incidents_get.lambda_handler
+    events:
+      - http:
+          path: incidents/{id}
+          method: get
+          cors: true
+
+  incidents_update:
+    handler: lambdas/incidents_update.lambda_handler
+    events:
+      - http:
+          path: incidents/{id}
+          method: put
+          cors: true
+
+  incidents_assign:
+    handler: lambdas/incidents_assign.lambda_handler
+    events:
+      - http:
+          path: incidents/{id}/assign
+          method: post
+          cors: true
+
+  # ---------- Comments ----------
+  comments_create:
+    handler: lambdas/comments_create.lambda_handler
+    events:
+      - http:
+          path: incidents/{id}/comments
+          method: post
+          cors: true
+
+  comments_list:
+    handler: lambdas/comments_list.lambda_handler
+    events:
+      - http:
+          path: incidents/{id}/comments
+          method: get
+          cors: true
+
+  # ---------- Notificaciones ----------
+  notifications_list:
+    handler: lambdas/notifications_list.lambda_handler
+    events:
+      - http:
+          path: notifications
+          method: get
+          cors: true
+
+  notifications_mark_read:
+    handler: lambdas/notifications_mark_read.lambda_handler
+    events:
+      - http:
+          path: notifications/{id}/mark-read
+          method: put
+          cors: true
+
+  # ---------- Admin ----------
+  admin_list:
+    handler: lambdas/admin_list.lambda_handler
+    events:
+      - http:
+          path: users/admin-status
+          method: get
+          cors: true
+
+  # ---------- Imágenes S3 ----------
+  images_getSignedUrl:
+    handler: lambdas/images_getSignedUrl.lambda_handler
+    events:
+      - http:
+          path: images/signed-url
+          method: get
+          cors: true
+
+  lambda_generate_presigned_url:
+    handler: lambdas/lambda_generate_presigned_url.lambda_handler
+    events:
+      - http:
+          path: images/generate
+          method: post
+          cors: true
+
+  # ---------- WebSockets ----------
+  websocket_connect:
+    handler: lambdas/websocket_connect.lambda_handler
+    events:
+      - websocket:
+          route: $connect
+
+  websocket_disconnect:
+    handler: lambdas/websocket_disconnect.lambda_handler
+    events:
+      - websocket:
+          route: $disconnect
+
+  websocket_default:
+    handler: lambdas/websocket_default.lambda_handler
+    events:
+      - websocket:
+          route: $default
+
+  websocket_send:
+    handler: lambdas/websocket_send.lambda_handler
+    events:
+      - websocket:
+          route: sendMessage
+
+  websocket_subscribe_comments:
+    handler: lambdas/websocket_subscribe_comments.lambda_handler
+    events:
+      - websocket:
+          route: subscribeComments
+
+  websocket_subscribe_incidents:
+    handler: lambdas/websocket_subscribe_incidents.lambda_handler
+    events:
+      - websocket:
+          route: subscribeIncidents
+
+  websocket_subscribe_notify:
+    handler: lambdas/websocket_subscribe_notify.lambda_handler
+    events:
+      - websocket:
+          route: subscribeNotify
+
+  # ---------- Scheduled Lambda ----------
+  CheckUpdatesLambda:
+    handler: lambdas/CheckUpdatesLambda.lambda_handler
+    events:
+      - schedule: rate(1 minute)
