@@ -180,6 +180,27 @@ functions:
       - websocket:
           route: subscribeNotify
 
+  # ---------- Stream ----------
+  IncidentsStreamProcessor:
+    handler: incidents_stream_processor.lambda_handler
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - IncidentsTable
+              - StreamArn
+
+  CommentsStreamProcessor:
+    handler: comments_stream_processor.lambda_handler
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - CommentsTable
+              - StreamArn          
+
   # ---------- Scheduled Lambda ----------
   CheckUpdatesLambda:
     handler: lambdas/CheckUpdatesLambda.lambda_handler
