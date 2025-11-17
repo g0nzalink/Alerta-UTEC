@@ -8,7 +8,9 @@ from datetime import datetime, timedelta
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("Incidents")
+sns_client = boto3.client("sns")
 JWT_SECRET = os.environ.get("JWT_SECRET", "supersecreto")
+SNS_TOPIC_ARN = os.environ.get("SNS_TOPIC_ARN")
 
 apigw = boto3.client(
     "apigatewaymanagementapi",
@@ -39,7 +41,7 @@ def decode_jwt(token, secret):
 def notify_clients(message):
     """Notifica a todos los clientes suscritos (simplificado)"""
     try:
-        connections_table = dynamodb.Table("WebSocketConnections")
+        connections_table = dynamodb.Table("WebSocketConnectionsV2")
         response_scan = connections_table.scan()
         for item in response_scan.get("Items", []):
             conn_id = item["connectionId"]
@@ -83,6 +85,36 @@ def lambda_handler(event, context):
     }
 
     table.put_item(Item=item)
+
+    # Enviar notificación por email a las autoridades SOLO si es prioridad ALTA
+    if item['priority'].lower() == 'high':
+        try:
+            if SNS_TOPIC_ARN:
+                email_subject = f"🚨 URGENTE - Incidente de Prioridad Alta: {item['title']}"
+                email_message = f"""
+⚠️ ALERTA DE PRIORIDAD ALTA ⚠️
+
+Nuevo incidente URGENTE reportado en Alerta UTEC
+
+Título: {item['title']}
+Descripción: {item['description']}
+Prioridad: {item['priority'].upper()}
+Estado: {item['status']}
+Fecha: {item['createdAt']}
+ID del Incidente: {item['incidentId']}
+
+⚡ Este incidente requiere atención inmediata.
+Por favor, revise el incidente en el sistema lo antes posible.
+                """
+                
+                sns_client.publish(
+                    TopicArn=SNS_TOPIC_ARN,
+                    Subject=email_subject,
+                    Message=email_message
+                )
+                print(f"Notificación SNS enviada para incidente de alta prioridad {incident_id}")
+        except Exception as e:
+            print(f"Error enviando notificación SNS: {str(e)}")
 
     # Notificación en tiempo real vía WebSocket
     notify_clients({

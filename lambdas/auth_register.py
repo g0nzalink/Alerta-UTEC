@@ -10,7 +10,9 @@ from boto3.dynamodb.conditions import Attr  # IMPORT CORRECTO PARA SCAN
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("Users")
+sns_client = boto3.client("sns")
 JWT_SECRET = os.environ.get("JWT_SECRET", "supersecreto")
+SNS_TOPIC_ARN = os.environ.get("SNS_TOPIC_ARN")
 
 def hash_password(password: str):
     return hashlib.sha256(password.encode("utf-8")).hexdigest()
@@ -61,7 +63,20 @@ def lambda_handler(event, context):
     }
     table.put_item(Item=item)
 
+    # Suscribir automáticamente a SNS si es ADMIN o STAFF
+    if role.upper() in ["ADMIN", "STAFF"]:
+        try:
+            if SNS_TOPIC_ARN:
+                subscription_response = sns_client.subscribe(
+                    TopicArn=SNS_TOPIC_ARN,
+                    Protocol='email',
+                    Endpoint=email
+                )
+                print(f"Usuario {email} suscrito a SNS. Debe confirmar el email.")
+        except Exception as e:
+            print(f"Error suscribiendo a SNS: {str(e)}")
+
     # Generar token JWT usando nuestra función interna
     token = create_jwt({"userId": user_id, "role": role}, JWT_SECRET)
 
-    return response(200, {"token": token})
+    return response(200, {"token": token, "message": "Usuario creado. Si es autoridad, confirme el email de suscripción."})

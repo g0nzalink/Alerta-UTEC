@@ -4,7 +4,7 @@ import os
 
 apigw = boto3.client("apigatewaymanagementapi", endpoint_url=os.environ.get("WS_ENDPOINT"))
 dynamodb = boto3.resource("dynamodb")
-connections_table = dynamodb.Table("WebSocketConnections")
+connections_table = dynamodb.Table("WebSocketConnectionsV2")
 
 def lambda_handler(event, context):
     body = json.loads(event.get("body","{}"))
