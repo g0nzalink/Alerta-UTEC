@@ -20,37 +20,6 @@ El objetivo es ofrecer un sistema de reportes de incidentes dentro del campus, c
 ## Arquitectura general
 
 El proyecto sigue una arquitectura por funciones Lambda independientes, cada una manejando un endpoint o evento específico. La base del sistema es el archivo `serverless.yml`, que define toda la infraestructura: funciones, tablas, streams, bucket S3 y API Gateway.
-
-### Estructura del proyecto
-
-.
-├── serverless.yml
-├── requirements.txt
-└── lambdas/
-├── auth_register.py
-├── auth_login.py
-├── incidents_create.py
-├── incidents_list.py
-├── incidents_get.py
-├── incidents_update.py
-├── incidents_assign.py
-├── comments_create.py
-├── comments_list.py
-├── notifications_list.py
-├── notifications_mark_read.py
-├── admin_list.py
-├── images_getSignedUrl.py
-├── lambda_generate_presigned_url.py
-├── websocket_connect.py
-├── websocket_disconnect.py
-├── websocket_default.py
-├── websocket_subscribe_incidents.py
-├── websocket_subscribe_comments.py
-├── websocket_subscribe_notify.py
-├── IncidentsStreamProcessor.py
-├── CommentsStreamProcessor.py
-└── CheckUpdatesLambda.py
-
 ---
 
 ## Tablas DynamoDB
