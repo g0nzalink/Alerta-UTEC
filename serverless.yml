@@ -156,6 +156,12 @@ functions:
     events:
       - websocket:
           route: $default
+  
+  websocket_subscribe_incidents:
+  handler: lambdas/websocket_subscribe_incidents.lambda_handler
+  events:
+    - websocket:
+        route: subscribeIncidents
 
   # ---------- Stream ----------
   IncidentsStreamProcessor:

@@ -3,48 +3,36 @@ import os
 import json
 
 dynamodb = boto3.resource("dynamodb")
-TABLE_NAME = os.environ.get("CONNECTIONS_TABLE", "WebSocketConnectionsV2")
-connections_table = dynamodb.Table(TABLE_NAME)
+
+# IMPORTANTE:
+# Usa SIEMPRE la misma variable que definiste en serverless.yml
+CONNECTIONS_TABLE = os.environ["ConnectionsTable"]
+table = dynamodb.Table(CONNECTIONS_TABLE)
 
 def lambda_handler(event, context):
-    print("DEBUG subscribeIncidents EVENT:", json.dumps(event))
-
     try:
+        print("DEBUG subscribeIncidents EVENT:", json.dumps(event))
+
         connection_id = event["requestContext"]["connectionId"]
 
-        # Parsear body
-        body = json.loads(event.get("body", "{}"))
-
-        # Acción esperada
-        action = body.get("action")
-        if action != "subscribeIncidents":
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"ok": False, "error": "Missing or invalid action"})
-            }
-
-        # Tipo de suscripción
-        subscription_type = "incidents"
-
-        # Guardar en DynamoDB (crea lista si no existe)
-        connections_table.update_item(
-            Key={"connectionId": connection_id},
-            UpdateExpression="""
-                SET subscriptions = list_append(if_not_exists(subscriptions, :empty), :sub)
-            """,
-            ExpressionAttributeValues={
-                ":empty": [],
-                ":sub": [subscription_type]
+        # Guardar conexión con tipo "incidents"
+        table.put_item(
+            Item={
+                "connectionId": connection_id,
+                "type": "incidents"
             }
         )
 
         return {
             "statusCode": 200,
-            "body": json.dumps({"ok": True, "subscribed": subscription_type})
+            "body": json.dumps({
+                "ok": True,
+                "subscribed": "incidents"
+            })
         }
 
     except Exception as e:
-        print("ERROR in subscribeIncidents:", e)
+        print("ERROR subscribeIncidents:", str(e))
         return {
             "statusCode": 500,
             "body": json.dumps({"ok": False, "error": str(e)})
