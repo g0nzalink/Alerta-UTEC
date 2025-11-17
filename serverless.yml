@@ -157,30 +157,6 @@ functions:
       - websocket:
           route: $default
 
-  websocket_send:
-    handler: lambdas/websocket_send.lambda_handler
-    events:
-      - websocket:
-          route: sendMessage
-
-  websocket_subscribe_comments:
-    handler: lambdas/websocket_subscribe_comments.lambda_handler
-    events:
-      - websocket:
-          route: subscribeComments
-
-  websocket_subscribe_incidents:
-    handler: lambdas/websocket_subscribe_incidents.lambda_handler
-    events:
-      - websocket:
-          route: subscribeIncidents
-
-  websocket_subscribe_notify:
-    handler: lambdas/websocket_subscribe_notify.lambda_handler
-    events:
-      - websocket:
-          route: subscribeNotify
-
   # ---------- Stream ----------
   IncidentsStreamProcessor:
     handler: incidents_stream_processor.lambda_handler
