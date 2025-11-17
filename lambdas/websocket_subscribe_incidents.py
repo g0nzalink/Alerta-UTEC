@@ -7,6 +7,7 @@ TABLE_NAME = os.environ.get("CONNECTIONS_TABLE", "WebSocketConnectionsV2")
 connections_table = dynamodb.Table(TABLE_NAME)
 
 def lambda_handler(event, context):
+    print("DEBUG subscribeIncidents EVENT:", json.dumps(event))
     try:
         connection_id = event["requestContext"]["connectionId"]
         body = json.loads(event.get("body","{}"))
