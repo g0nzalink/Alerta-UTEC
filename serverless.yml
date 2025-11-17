@@ -1,6 +1,3 @@
-service: alerta-utec-backend
-frameworkVersion: '3'
-
 provider:
   name: aws
   region: us-east-1
@@ -13,7 +10,8 @@ provider:
     NOTIFICATIONS_TABLE: Notifications
     S3_BUCKET: alerta-utec
     JWT_SECRET: ""   # vacío, las lambdas usarán este valor por defecto
-    WS_ENDPOINT: { "Fn::Sub": "https://${WebsocketsApi}.execute-api.${AWS::Region}.amazonaws.com/${sls:stage}" }
+    # Removed WS_ENDPOINT because using requestContext.domainName + stage is required
+    CONNECTIONS_TABLE: WebSocketConnectionsV2
     SNS_TOPIC_ARN: { "Ref": "IncidentNotificationTopic" }
   role: arn:aws:iam::415457515231:role/LabRole
 
