@@ -15,7 +15,7 @@ provider:
     JWT_SECRET: ""
     CONNECTIONS_TABLE: WebSocketConnectionsV2
     SNS_TOPIC_ARN: { "Ref": "IncidentNotificationTopic" }
-    WS_ENDPOINT: https://qp9cvpquch.execute-api.us-east-1.amazonaws.com/dev/@connections
+    WS_ENDPOINT: https://qp9cvpquch.execute-api.us-east-1.amazonaws.com/dev/
   role: arn:aws:iam::415457515231:role/LabRole
 
 functions:
