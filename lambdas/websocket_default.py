@@ -2,8 +2,8 @@ import boto3
 import json
 import os
 
-dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table(os.environ.get("CONNECTIONS_TABLE", "WebSocketConnectionsV2"))
+dynamodb = boto3.client("dynamodb")
+TABLE = os.environ.get("CONNECTIONS_TABLE", "WebSocketConnectionsV2")
 
 def lambda_handler(event, context):
     try:
@@ -13,11 +13,12 @@ def lambda_handler(event, context):
 
         # ------- 1. Suscripción a INCIDENTES -------
         if action == "subscribeIncidents":
-            table.update_item(
-                Key={"connectionId": connection_id},
+            dynamodb.update_item(
+                TableName=TABLE,
+                Key={"connectionId": {"S": connection_id}},
                 UpdateExpression="ADD subscriptions :s",
                 ExpressionAttributeValues={
-                    ":s": set(["incidents"])
+                    ":s": {"SS": ["incidents"]}
                 }
             )
             return {
@@ -27,11 +28,12 @@ def lambda_handler(event, context):
 
         # ------- 2. Suscripción a COMMENTS -------
         if action == "subscribeComments":
-            table.update_item(
-                Key={"connectionId": connection_id},
+            dynamodb.update_item(
+                TableName=TABLE,
+                Key={"connectionId": {"S": connection_id}},
                 UpdateExpression="ADD subscriptions :s",
                 ExpressionAttributeValues={
-                    ":s": set(["comments"])
+                    ":s": {"SS": ["comments"]}
                 }
             )
             return {
@@ -39,22 +41,15 @@ def lambda_handler(event, context):
                 "body": json.dumps({"ok": True, "subscribed": "comments"})
             }
 
-        # ------- 3. Enviar mensaje manual (debug) -------
+        # ------- 3. Enviar mensajes (debug) -------
         if action == "sendMessage":
             return {
                 "statusCode": 200,
                 "body": json.dumps({"message": body.get("message")})
             }
 
-        # ------- 4. Cualquier otra cosa --------
-        return {
-            "statusCode": 200,
-            "body": json.dumps({"info": "default route ok"})
-        }
+        return {"statusCode": 200, "body": "default-ok"}
 
     except Exception as e:
-        print("Error:", str(e))
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": str(e)})
-        }
+        print("ERROR IN DEFAULT:", str(e))
+        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
