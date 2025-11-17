@@ -8,18 +8,44 @@ connections_table = dynamodb.Table(TABLE_NAME)
 
 def lambda_handler(event, context):
     print("DEBUG subscribeIncidents EVENT:", json.dumps(event))
+
     try:
         connection_id = event["requestContext"]["connectionId"]
-        body = json.loads(event.get("body","{}"))
-        subscription_type = body.get("type", "incidents")
+
+        # Parsear body
+        body = json.loads(event.get("body", "{}"))
+
+        # Acción esperada
+        action = body.get("action")
+        if action != "subscribeIncidents":
+            return {
+                "statusCode": 400,
+                "body": json.dumps({"ok": False, "error": "Missing or invalid action"})
+            }
+
+        # Tipo de suscripción
+        subscription_type = "incidents"
+
+        # Guardar en DynamoDB (crea lista si no existe)
         connections_table.update_item(
             Key={"connectionId": connection_id},
-            UpdateExpression="ADD subscriptions :sub",
+            UpdateExpression="""
+                SET subscriptions = list_append(if_not_exists(subscriptions, :empty), :sub)
+            """,
             ExpressionAttributeValues={
-                ":sub": set([subscription_type])
+                ":empty": [],
+                ":sub": [subscription_type]
             }
         )
-        return {"statusCode": 200, "body": json.dumps({"message": f"Suscrito a {subscription_type}"})}
+
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"ok": True, "subscribed": subscription_type})
+        }
+
     except Exception as e:
-        print(f"Error subscribing to incidents: {str(e)}")
-        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+        print("ERROR in subscribeIncidents:", e)
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"ok": False, "error": str(e)})
+        }
